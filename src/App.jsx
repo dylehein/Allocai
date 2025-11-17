@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Calendar, Home, Calculator, X, ArrowRight, CheckCircle, LogOut, User, Settings, ChevronDown, Lock, Plus, Trash2, Receipt, PiggyBank, Menu, FileText } from 'lucide-react';
+import { supabase } from './lib/supabase';
 import { storage } from './utils/storage';
 
 const Allocai = () => {
