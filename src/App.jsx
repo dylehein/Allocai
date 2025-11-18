@@ -1,687 +1,763 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Calendar, Home, Calculator, X, ArrowRight, CheckCircle, LogOut, User, Settings, ChevronDown, Lock, Plus, Trash2, Receipt, PiggyBank, Menu, FileText } from 'lucide-react';
 import { supabase } from './lib/supabase';
-import { storage } from './utils/storage';
 
 const Allocai = () => {
-const [user, setUser] = useState(null);
-const [view, setView] = useState('dashboard');
-const [showAuth, setShowAuth] = useState(false);
-const [showUserMenu, setShowUserMenu] = useState(false);
-const [showMobileMenu, setShowMobileMenu] = useState(false);
-const [showForgotPassword, setShowForgotPassword] = useState(false);
-const [showExpenseModal, setShowExpenseModal] = useState(false);
-const [showMoreInfoModal, setShowMoreInfoModal] = useState(false);
-const [isLogin, setIsLogin] = useState(true);
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState('dashboard');
+  const [showAuth, setShowAuth] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [showMoreInfoModal, setShowMoreInfoModal] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [authError, setAuthError] = useState('');
+  const [authSuccess, setAuthSuccess] = useState('');
 
-const [email, setEmail] = useState('');
-const [password, setPassword] = useState('');
-const [name, setName] = useState('');
-const [resetEmail, setResetEmail] = useState('');
-const [resetSent, setResetSent] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
 
-const [state, setState] = useState('');
-const [income, setIncome] = useState('');
-const [result, setResult] = useState(null);
-const [reminders, setReminders] = useState([]);
-const [expenses, setExpenses] = useState([]);
-const [expenseForm, setExpenseForm] = useState({
-  description: '',
-  amount: '',
-  category: '',
-  date: new Date().toISOString().split('T')[0]
-});
-const [userProfile, setUserProfile] = useState({
-  paymentsPerYear: 12,
-  expectedAnnualIncome: '',
-  businessType: '',
-  hasHealthInsurance: false
-});
+  const [state, setState] = useState('');
+  const [income, setIncome] = useState('');
+  const [result, setResult] = useState(null);
+  const [reminders, setReminders] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [expenseForm, setExpenseForm] = useState({
+    description: '',
+    amount: '',
+    category: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+  const [userProfile, setUserProfile] = useState({
+    paymentsPerYear: 12,
+    expectedAnnualIncome: '',
+    businessType: '',
+    hasHealthInsurance: false
+  });
 
-const states = {
-  'AL': { name: 'Alabama', rate: 0.05 },
-  'AK': { name: 'Alaska', rate: 0 },
-  'AZ': { name: 'Arizona', rate: 0.0425 },
-  'AR': { name: 'Arkansas', rate: 0.055 },
-  'CA': { name: 'California', rate: 0.093 },
-  'CO': { name: 'Colorado', rate: 0.0455 },
-  'CT': { name: 'Connecticut', rate: 0.065 },
-  'DE': { name: 'Delaware', rate: 0.066 },
-  'FL': { name: 'Florida', rate: 0 },
-  'GA': { name: 'Georgia', rate: 0.0575 },
-  'HI': { name: 'Hawaii', rate: 0.11 },
-  'ID': { name: 'Idaho', rate: 0.06 },
-  'IL': { name: 'Illinois', rate: 0.0495 },
-  'IN': { name: 'Indiana', rate: 0.0323 },
-  'IA': { name: 'Iowa', rate: 0.06 },
-  'KS': { name: 'Kansas', rate: 0.057 },
-  'KY': { name: 'Kentucky', rate: 0.05 },
-  'LA': { name: 'Louisiana', rate: 0.0425 },
-  'ME': { name: 'Maine', rate: 0.075 },
-  'MD': { name: 'Maryland', rate: 0.0575 },
-  'MA': { name: 'Massachusetts', rate: 0.05 },
-  'MI': { name: 'Michigan', rate: 0.0425 },
-  'MN': { name: 'Minnesota', rate: 0.0985 },
-  'MS': { name: 'Mississippi', rate: 0.05 },
-  'MO': { name: 'Missouri', rate: 0.054 },
-  'MT': { name: 'Montana', rate: 0.069 },
-  'NE': { name: 'Nebraska', rate: 0.0684 },
-  'NV': { name: 'Nevada', rate: 0 },
-  'NH': { name: 'New Hampshire', rate: 0 },
-  'NJ': { name: 'New Jersey', rate: 0.1075 },
-  'NM': { name: 'New Mexico', rate: 0.059 },
-  'NY': { name: 'New York', rate: 0.0685 },
-  'NC': { name: 'North Carolina', rate: 0.0525 },
-  'ND': { name: 'North Dakota', rate: 0.029 },
-  'OH': { name: 'Ohio', rate: 0.039 },
-  'OK': { name: 'Oklahoma', rate: 0.05 },
-  'OR': { name: 'Oregon', rate: 0.099 },
-  'PA': { name: 'Pennsylvania', rate: 0.0307 },
-  'RI': { name: 'Rhode Island', rate: 0.0599 },
-  'SC': { name: 'South Carolina', rate: 0.07 },
-  'SD': { name: 'South Dakota', rate: 0 },
-  'TN': { name: 'Tennessee', rate: 0 },
-  'TX': { name: 'Texas', rate: 0 },
-  'UT': { name: 'Utah', rate: 0.0495 },
-  'VT': { name: 'Vermont', rate: 0.0875 },
-  'VA': { name: 'Virginia', rate: 0.0575 },
-  'WA': { name: 'Washington', rate: 0 },
-  'WV': { name: 'West Virginia', rate: 0.065 },
-  'WI': { name: 'Wisconsin', rate: 0.0765 },
-  'WY': { name: 'Wyoming', rate: 0 },
-  'DC': { name: 'District of Columbia', rate: 0.0975 }
-};
+  const states = {
+    'AL': { name: 'Alabama', rate: 0.05 },
+    'AK': { name: 'Alaska', rate: 0 },
+    'AZ': { name: 'Arizona', rate: 0.0425 },
+    'AR': { name: 'Arkansas', rate: 0.055 },
+    'CA': { name: 'California', rate: 0.093 },
+    'CO': { name: 'Colorado', rate: 0.0455 },
+    'CT': { name: 'Connecticut', rate: 0.065 },
+    'DE': { name: 'Delaware', rate: 0.066 },
+    'FL': { name: 'Florida', rate: 0 },
+    'GA': { name: 'Georgia', rate: 0.0575 },
+    'HI': { name: 'Hawaii', rate: 0.11 },
+    'ID': { name: 'Idaho', rate: 0.06 },
+    'IL': { name: 'Illinois', rate: 0.0495 },
+    'IN': { name: 'Indiana', rate: 0.0323 },
+    'IA': { name: 'Iowa', rate: 0.06 },
+    'KS': { name: 'Kansas', rate: 0.057 },
+    'KY': { name: 'Kentucky', rate: 0.05 },
+    'LA': { name: 'Louisiana', rate: 0.0425 },
+    'ME': { name: 'Maine', rate: 0.075 },
+    'MD': { name: 'Maryland', rate: 0.0575 },
+    'MA': { name: 'Massachusetts', rate: 0.05 },
+    'MI': { name: 'Michigan', rate: 0.0425 },
+    'MN': { name: 'Minnesota', rate: 0.0985 },
+    'MS': { name: 'Mississippi', rate: 0.05 },
+    'MO': { name: 'Missouri', rate: 0.054 },
+    'MT': { name: 'Montana', rate: 0.069 },
+    'NE': { name: 'Nebraska', rate: 0.0684 },
+    'NV': { name: 'Nevada', rate: 0 },
+    'NH': { name: 'New Hampshire', rate: 0 },
+    'NJ': { name: 'New Jersey', rate: 0.1075 },
+    'NM': { name: 'New Mexico', rate: 0.059 },
+    'NY': { name: 'New York', rate: 0.0685 },
+    'NC': { name: 'North Carolina', rate: 0.0525 },
+    'ND': { name: 'North Dakota', rate: 0.029 },
+    'OH': { name: 'Ohio', rate: 0.039 },
+    'OK': { name: 'Oklahoma', rate: 0.05 },
+    'OR': { name: 'Oregon', rate: 0.099 },
+    'PA': { name: 'Pennsylvania', rate: 0.0307 },
+    'RI': { name: 'Rhode Island', rate: 0.0599 },
+    'SC': { name: 'South Carolina', rate: 0.07 },
+    'SD': { name: 'South Dakota', rate: 0 },
+    'TN': { name: 'Tennessee', rate: 0 },
+    'TX': { name: 'Texas', rate: 0 },
+    'UT': { name: 'Utah', rate: 0.0495 },
+    'VT': { name: 'Vermont', rate: 0.0875 },
+    'VA': { name: 'Virginia', rate: 0.0575 },
+    'WA': { name: 'Washington', rate: 0 },
+    'WV': { name: 'West Virginia', rate: 0.065 },
+    'WI': { name: 'Wisconsin', rate: 0.0765 },
+    'WY': { name: 'Wyoming', rate: 0 },
+    'DC': { name: 'District of Columbia', rate: 0.0975 }
+  };
 
-const handleAuth = async () => {
-if (isLogin) {
-try {
-const data = await storage.get(`allocai-${email}`);
-if (data) {
-const acc = JSON.parse(data.value);
-if (acc.password === password) {
-const u = { email, name: acc.name, plan: acc.plan || 'free' };
-setUser(u);
-await storage.set('allocai-user', JSON.stringify(u));
-setShowAuth(false);
-}
-}
-} catch (e) {}
-} else {
-try {
-await storage.set(`allocai-${email}`, JSON.stringify({ password, name, plan: 'free' }));
-const u = { email, name, plan: 'free' };
-setUser(u);
-await storage.set('allocai-user', JSON.stringify(u));
-setShowAuth(false);
-} catch (e) {}
-}
-setEmail('');
-setPassword('');
-setName('');
-};
+  // Check for existing session on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-const handleLogout = async () => {
-await storage.delete('allocai-user');
-setUser(null);
-setResult(null);
-setReminders([]);
-setShowUserMenu(false);
-setShowMobileMenu(false);
-};
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
 
-const handleForgotPassword = async () => {
-if (resetEmail) {
-setResetSent(true);
-setTimeout(() => {
-setResetSent(false);
-setShowForgotPassword(false);
-setResetEmail('');
-}, 3000);
-}
-};
+    return () => subscription.unsubscribe();
+  }, []);
 
-useEffect(() => {
-const loadReminders = async () => {
-if (user) {
-try {
-const data = await storage.get(`allocai-reminders-${user.email}`);
-if (data) {
-setReminders(JSON.parse(data.value));
-}
-} catch (e) {
-setReminders([]);
-}
-}
-};
-loadReminders();
-}, [user]);
+  // Load user data when authenticated (using localStorage for now - will migrate to Supabase tables)
+  useEffect(() => {
+    const loadReminders = async () => {
+      if (user) {
+        try {
+          const data = localStorage.getItem(`allocai-reminders-${user.id}`);
+          if (data) {
+            setReminders(JSON.parse(data));
+          }
+        } catch (e) {
+          setReminders([]);
+        }
+      }
+    };
+    loadReminders();
+  }, [user]);
 
-useEffect(() => {
-const loadExpenses = async () => {
-if (user) {
-try {
-const data = await storage.get(`allocai-expenses-${user.email}`);
-if (data) {
-setExpenses(JSON.parse(data.value));
-}
-} catch (e) {
-setExpenses([]);
-}
-}
-};
-loadExpenses();
-}, [user]);
+  useEffect(() => {
+    const loadExpenses = async () => {
+      if (user) {
+        try {
+          const data = localStorage.getItem(`allocai-expenses-${user.id}`);
+          if (data) {
+            setExpenses(JSON.parse(data));
+          }
+        } catch (e) {
+          setExpenses([]);
+        }
+      }
+    };
+    loadExpenses();
+  }, [user]);
 
-useEffect(() => {
-const loadProfile = async () => {
-if (user) {
-try {
-const data = await storage.get(`allocai-profile-${user.email}`);
-if (data) {
-setUserProfile(JSON.parse(data.value));
-}
-} catch (e) {}
-}
-};
-loadProfile();
-}, [user]);
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user) {
+        try {
+          const data = localStorage.getItem(`allocai-profile-${user.id}`);
+          if (data) {
+            setUserProfile(JSON.parse(data));
+          }
+        } catch (e) {}
+      }
+    };
+    loadProfile();
+  }, [user]);
 
-const saveProfile = async (profile) => {
-if (user) {
-try {
-await storage.set(`allocai-profile-${user.email}`, JSON.stringify(profile));
-setUserProfile(profile);
-} catch (e) {}
-}
-};
+  const handleAuth = async () => {
+    setAuthError('');
+    setAuthSuccess('');
 
-const saveReminders = async (newReminders) => {
-if (user) {
-try {
-await storage.set(`allocai-reminders-${user.email}`, JSON.stringify(newReminders));
-setReminders(newReminders);
-} catch (e) {}
-}
-};
+    if (isLogin) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-const addReminder = (date, amount, type) => {
-const newReminder = {
-id: Date.now().toString(),
-date,
-amount,
-type,
-paid: false,
-created: new Date().toISOString()
-};
-saveReminders([...reminders, newReminder]);
-};
+      if (error) {
+        setAuthError(error.message);
+      } else {
+        setShowAuth(false);
+        setEmail('');
+        setPassword('');
+      }
+    } else {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          }
+        }
+      });
 
-const togglePaid = (id) => {
-const updated = reminders.map(r => r.id === id ? { ...r, paid: !r.paid } : r);
-saveReminders(updated);
-};
+      if (error) {
+        setAuthError(error.message);
+      } else {
+        setAuthSuccess('Check your email to confirm your account!');
+        setEmail('');
+        setPassword('');
+        setName('');
+      }
+    }
+  };
 
-const deleteReminder = (id) => {
-saveReminders(reminders.filter(r => r.id !== id));
-};
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setResult(null);
+    setReminders([]);
+    setExpenses([]);
+    setShowUserMenu(false);
+    setShowMobileMenu(false);
+  };
 
-const getQuarterlyDates = () => {
-const year = new Date().getFullYear();
-return [
-{ quarter: 'Q1', date: `${year}-04-15`, label: 'Q1 (Jan-Mar)' },
-{ quarter: 'Q2', date: `${year}-06-15`, label: 'Q2 (Apr-May)' },
-{ quarter: 'Q3', date: `${year}-09-15`, label: 'Q3 (Jun-Aug)' },
-{ quarter: 'Q4', date: `${year + 1}-01-15`, label: 'Q4 (Sep-Dec)' }
-];
-};
+  const handleForgotPassword = async () => {
+    if (!resetEmail) return;
 
-const expenseCategories = [
-  'Office Supplies',
-  'Software & Tools',
-  'Travel & Transportation',
-  'Meals & Entertainment',
-  'Marketing & Advertising',
-  'Professional Services',
-  'Equipment',
-  'Home Office',
-  'Education & Training',
-  'Insurance',
-  'Licenses & Permits',
-  'Subscriptions & Memberships',
-  'Shipping & Postage',
-  'Contract Labor',
-  'Banking & Fees',
-  'Repairs & Maintenance',
-  'Phone & Internet',
-  'Printing & Copying',
-  'Business Meals',
-  'Business Clothing',
-  'Other'
-];
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
 
-const saveExpenses = async (newExpenses) => {
-if (user) {
-try {
-await storage.set(`allocai-expenses-${user.email}`, JSON.stringify(newExpenses));
-setExpenses(newExpenses);
-} catch (e) {}
-}
-};
+    if (error) {
+      setAuthError(error.message);
+    } else {
+      setResetSent(true);
+      setTimeout(() => {
+        setResetSent(false);
+        setShowForgotPassword(false);
+        setResetEmail('');
+      }, 3000);
+    }
+  };
 
-const addExpense = () => {
-if (!expenseForm.description || !expenseForm.amount || !expenseForm.category) return;
+  const saveProfile = async (profile) => {
+    if (user) {
+      try {
+        localStorage.setItem(`allocai-profile-${user.id}`, JSON.stringify(profile));
+        setUserProfile(profile);
+      } catch (e) {}
+    }
+  };
 
-const newExpense = {
-id: Date.now().toString(),
-description: expenseForm.description,
-amount: parseFloat(expenseForm.amount),
-category: expenseForm.category,
-date: expenseForm.date,
-created: new Date().toISOString()
-};
+  const saveReminders = async (newReminders) => {
+    if (user) {
+      try {
+        localStorage.setItem(`allocai-reminders-${user.id}`, JSON.stringify(newReminders));
+        setReminders(newReminders);
+      } catch (e) {}
+    }
+  };
 
-saveExpenses([...expenses, newExpense]);
-setExpenseForm({
-description: '',
-amount: '',
-category: '',
-date: new Date().toISOString().split('T')[0]
-});
-setShowExpenseModal(false);
-};
+  const addReminder = (date, amount, type) => {
+    const newReminder = {
+      id: Date.now().toString(),
+      date,
+      amount,
+      type,
+      paid: false,
+      created: new Date().toISOString()
+    };
+    saveReminders([...reminders, newReminder]);
+  };
 
-const deleteExpense = (id) => {
-saveExpenses(expenses.filter(e => e.id !== id));
-};
+  const togglePaid = (id) => {
+    const updated = reminders.map(r => r.id === id ? { ...r, paid: !r.paid } : r);
+    saveReminders(updated);
+  };
 
-const getTotalExpenses = () => {
-return expenses.reduce((sum, exp) => sum + exp.amount, 0);
-};
+  const deleteReminder = (id) => {
+    saveReminders(reminders.filter(r => r.id !== id));
+  };
 
-const getExpensesByCategory = () => {
-const byCategory = {};
-expenses.forEach(exp => {
-if (!byCategory[exp.category]) {
-byCategory[exp.category] = 0;
-}
-byCategory[exp.category] += exp.amount;
-});
-return byCategory;
-};
+  const getQuarterlyDates = () => {
+    const year = new Date().getFullYear();
+    return [
+      { quarter: 'Q1', date: `${year}-04-15`, label: 'Q1 (Jan-Mar)' },
+      { quarter: 'Q2', date: `${year}-06-15`, label: 'Q2 (Apr-May)' },
+      { quarter: 'Q3', date: `${year}-09-15`, label: 'Q3 (Jun-Aug)' },
+      { quarter: 'Q4', date: `${year + 1}-01-15`, label: 'Q4 (Sep-Dec)' }
+    ];
+  };
 
-const calc = () => {
-const amt = parseFloat(income);
-if (!amt || !state) return;
+  const expenseCategories = [
+    'Office Supplies',
+    'Software & Tools',
+    'Travel & Transportation',
+    'Meals & Entertainment',
+    'Marketing & Advertising',
+    'Professional Services',
+    'Equipment',
+    'Home Office',
+    'Education & Training',
+    'Insurance',
+    'Licenses & Permits',
+    'Subscriptions & Memberships',
+    'Shipping & Postage',
+    'Contract Labor',
+    'Banking & Fees',
+    'Repairs & Maintenance',
+    'Phone & Internet',
+    'Printing & Copying',
+    'Business Meals',
+    'Business Clothing',
+    'Other'
+  ];
 
-const totalExpenses = getTotalExpenses();
-const taxableIncome = Math.max(0, amt - totalExpenses);
+  const saveExpenses = async (newExpenses) => {
+    if (user) {
+      try {
+        localStorage.setItem(`allocai-expenses-${user.id}`, JSON.stringify(newExpenses));
+        setExpenses(newExpenses);
+      } catch (e) {}
+    }
+  };
 
-const se = taxableIncome * 0.9235 * 0.153;
-let fed = 0;
-const adj = taxableIncome - (se * 0.5);
+  const addExpense = () => {
+    if (!expenseForm.description || !expenseForm.amount || !expenseForm.category) return;
 
-if (adj > 47150) fed += Math.min(adj - 47150, 53375) * 0.22;
-if (adj > 11600) fed += Math.min(adj - 11600, 35550) * 0.12;
-if (adj > 0) fed += Math.min(adj, 11600) * 0.10;
+    const newExpense = {
+      id: Date.now().toString(),
+      description: expenseForm.description,
+      amount: parseFloat(expenseForm.amount),
+      category: expenseForm.category,
+      date: expenseForm.date,
+      created: new Date().toISOString()
+    };
 
-const stateTax = taxableIncome * states[state].rate;
-const total = se + fed + stateTax;
+    saveExpenses([...expenses, newExpense]);
+    setExpenseForm({
+      description: '',
+      amount: '',
+      category: '',
+      date: new Date().toISOString().split('T')[0]
+    });
+    setShowExpenseModal(false);
+  };
 
-const paymentsPerYear = userProfile.paymentsPerYear || 12;
-const annualIncome = userProfile.expectedAnnualIncome 
-? parseFloat(userProfile.expectedAnnualIncome) 
-: amt * paymentsPerYear;
+  const deleteExpense = (id) => {
+    saveExpenses(expenses.filter(e => e.id !== id));
+  };
 
-const annualExpenses = totalExpenses * paymentsPerYear;
-const annualTaxableIncome = Math.max(0, annualIncome - annualExpenses);
+  const getTotalExpenses = () => {
+    return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  };
 
-const annualSE = annualTaxableIncome * 0.9235 * 0.153;
-let annualFed = 0;
-const annualAdj = annualTaxableIncome - (annualSE * 0.5);
+  const getExpensesByCategory = () => {
+    const byCategory = {};
+    expenses.forEach(exp => {
+      if (!byCategory[exp.category]) {
+        byCategory[exp.category] = 0;
+      }
+      byCategory[exp.category] += exp.amount;
+    });
+    return byCategory;
+  };
 
-if (annualAdj > 47150) annualFed += Math.min(annualAdj - 47150, 53375) * 0.22;
-if (annualAdj > 11600) annualFed += Math.min(annualAdj - 11600, 35550) * 0.12;
-if (annualAdj > 0) annualFed += Math.min(annualAdj, 11600) * 0.10;
+  const calc = () => {
+    const amt = parseFloat(income);
+    if (!amt || !state) return;
 
-const annualStateTax = annualTaxableIncome * states[state].rate;
-const annualTotalTax = annualSE + annualFed + annualStateTax;
+    const totalExpenses = getTotalExpenses();
+    const taxableIncome = Math.max(0, amt - totalExpenses);
 
-setResult({
-income: amt,
-state,
-total,
-take: amt - total,
-rate: (total / amt) * 100,
-annualTax: annualTotalTax,
-perYear: paymentsPerYear,
-quarterlyPayment: annualTotalTax / 4,
-expensesDeducted: totalExpenses,
-taxableIncome: taxableIncome,
-taxSavingsFromExpenses: (totalExpenses * 0.25)
-});
+    const se = taxableIncome * 0.9235 * 0.153;
+    let fed = 0;
+    const adj = taxableIncome - (se * 0.5);
 
-setView('dashboard');
+    if (adj > 47150) fed += Math.min(adj - 47150, 53375) * 0.22;
+    if (adj > 11600) fed += Math.min(adj - 11600, 35550) * 0.12;
+    if (adj > 0) fed += Math.min(adj, 11600) * 0.10;
 
-if (!userProfile.expectedAnnualIncome || !userProfile.businessType) {
-setTimeout(() => setShowMoreInfoModal(true), 500);
-}
-};
+    const stateTax = taxableIncome * states[state].rate;
+    const total = se + fed + stateTax;
 
-return (
-<div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 font-space">
-<nav className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-slate-100">
-<div className="max-w-7xl mx-auto px-6">
-<div className="flex justify-between items-center h-20">
-<div className="flex items-center gap-4 cursor-pointer" onClick={() => setView('dashboard')}>
-<div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
-<span className="text-xl font-bold text-white">A</span>
-</div>
-<span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">allocai</span>
-</div>
+    const paymentsPerYear = userProfile.paymentsPerYear || 12;
+    const annualIncome = userProfile.expectedAnnualIncome 
+      ? parseFloat(userProfile.expectedAnnualIncome) 
+      : amt * paymentsPerYear;
 
-{user ? (
-<>
-<div className="hidden md:block relative">
-<button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-3 px-4 py-2.5 rounded-full hover:bg-slate-50 transition-all">
-<div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center">
-<User className="w-4 h-4 text-white" />
-</div>
-<span className="text-sm font-medium">{user.name.split(' ')[0]}</span>
-<ChevronDown className="w-4 h-4" />
-</button>
+    const annualExpenses = totalExpenses * paymentsPerYear;
+    const annualTaxableIncome = Math.max(0, annualIncome - annualExpenses);
 
-{showUserMenu && (
-<div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border py-2 z-50">
-<div className="px-5 py-4 border-b">
-<p className="text-sm font-semibold">{user.name}</p>
-<p className="text-xs text-slate-500">{user.email}</p>
-</div>
-<button onClick={() => { setView('dashboard'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Home className="w-4 h-4" />Dashboard
-</button>
-<button onClick={() => { setView('calculator'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Calculator className="w-4 h-4" />Calculator
-</button>
-<button onClick={() => { setView('calendar'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Calendar className="w-4 h-4" />Tax Calendar
-</button>
-<button onClick={() => { setView('expenses'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Receipt className="w-4 h-4" />Expenses
-</button>
-<button onClick={() => { setView('settings'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Settings className="w-4 h-4" />Settings
-</button>
-<div className="border-t pt-2">
-<button onClick={handleLogout} className="w-full text-left px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
-<LogOut className="w-4 h-4" />Sign out
-</button>
-</div>
-</div>
-)}
-</div>
+    const annualSE = annualTaxableIncome * 0.9235 * 0.153;
+    let annualFed = 0;
+    const annualAdj = annualTaxableIncome - (annualSE * 0.5);
 
-<button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden p-2 hover:bg-slate-50 rounded-lg">
-<Menu className="w-6 h-6" />
-</button>
-</>
-) : (
-<button onClick={() => setShowAuth(true)} className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-medium hover:shadow-lg transition-all">
-Sign in
-</button>
-)}
-</div>
-</div>
+    if (annualAdj > 47150) annualFed += Math.min(annualAdj - 47150, 53375) * 0.22;
+    if (annualAdj > 11600) annualFed += Math.min(annualAdj - 11600, 35550) * 0.12;
+    if (annualAdj > 0) annualFed += Math.min(annualAdj, 11600) * 0.10;
 
-{showMobileMenu && user && (
-<div className="md:hidden bg-white border-t">
-<div className="px-6 py-4 border-b">
-<p className="text-sm font-semibold">{user.name}</p>
-<p className="text-xs text-slate-500">{user.email}</p>
-</div>
-<button onClick={() => { setView('dashboard'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Home className="w-4 h-4" />Dashboard
-</button>
-<button onClick={() => { setView('calculator'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Calculator className="w-4 h-4" />Calculator
-</button>
-<button onClick={() => { setView('calendar'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Calendar className="w-4 h-4" />Tax Calendar
-</button>
-<button onClick={() => { setView('expenses'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Receipt className="w-4 h-4" />Expenses
-</button>
-<button onClick={() => { setView('settings'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
-<Settings className="w-4 h-4" />Settings
-</button>
-<div className="border-t">
-<button onClick={handleLogout} className="w-full text-left px-6 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
-<LogOut className="w-4 h-4" />Sign out
-</button>
-</div>
-</div>
-)}
-</nav>
+    const annualStateTax = annualTaxableIncome * states[state].rate;
+    const annualTotalTax = annualSE + annualFed + annualStateTax;
 
-{showAuth && (
-<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-<div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
-<button onClick={() => setShowAuth(false)} className="absolute top-4 right-4"><X /></button>
-<div className="text-center mb-6">
-<div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-<span className="text-2xl font-bold text-white">A</span>
-</div>
-<h2 className="text-2xl font-bold">{isLogin ? 'Welcome back' : 'Get started'}</h2>
-</div>
-<div className="space-y-4">
-{!isLogin && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />}
-<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />
-<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />
-{isLogin && (
-<div className="text-right">
-<button onClick={() => { setShowAuth(false); setShowForgotPassword(true); }} className="text-sm text-indigo-600 hover:text-indigo-700">
-Forgot password?
-</button>
-</div>
-)}
-<button onClick={handleAuth} className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3 rounded-full font-semibold">
-{isLogin ? 'Sign in' : 'Create account'}
-</button>
-</div>
-<button onClick={() => setIsLogin(!isLogin)} className="mt-4 text-sm text-slate-600 w-full">
-{isLogin ? 'Need an account? Sign up' : 'Have an account? Sign in'}
-</button>
-</div>
-</div>
-)}
+    setResult({
+      income: amt,
+      state,
+      total,
+      take: amt - total,
+      rate: (total / amt) * 100,
+      annualTax: annualTotalTax,
+      perYear: paymentsPerYear,
+      quarterlyPayment: annualTotalTax / 4,
+      expensesDeducted: totalExpenses,
+      taxableIncome: taxableIncome,
+      taxSavingsFromExpenses: (totalExpenses * 0.25)
+    });
 
-{showForgotPassword && (
-<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-<div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
-<button onClick={() => { setShowForgotPassword(false); setResetSent(false); setResetEmail(''); }} className="absolute top-4 right-4">
-<X />
-</button>
-<div className="text-center mb-6">
-<div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-<Lock className="w-8 h-8 text-indigo-600" />
-</div>
-<h2 className="text-2xl font-bold mb-2">Reset Password</h2>
-<p className="text-sm text-slate-600">Enter your email and we'll send you a reset link</p>
-</div>
-{!resetSent ? (
-<div className="space-y-4">
-<input 
-type="email" 
-value={resetEmail} 
-onChange={(e) => setResetEmail(e.target.value)} 
-placeholder="Email" 
-className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" 
-/>
-<button 
-onClick={handleForgotPassword} 
-disabled={!resetEmail}
-className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3 rounded-full font-semibold disabled:opacity-50"
->
-Send Reset Link
-</button>
-<button 
-onClick={() => { setShowForgotPassword(false); setShowAuth(true); }} 
-className="w-full text-sm text-slate-600"
->
-Back to sign in
-</button>
-</div>
-) : (
-<div className="text-center py-4">
-<div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-<CheckCircle className="w-8 h-8 text-green-600" />
-</div>
-<p className="text-slate-600 mb-4">Reset link sent to {resetEmail}</p>
-<p className="text-xs text-slate-500">Check your inbox and follow the instructions</p>
-</div>
-)}
-</div>
-</div>
-)}
+    setView('dashboard');
 
-<main className="max-w-7xl mx-auto px-6 py-12">
-{view === 'dashboard' && (
-<div className="space-y-12">
-<div className="text-center max-w-3xl mx-auto">
-<h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 font-syne" style={{ fontWeight: 800 }}>
-{user ? `Hey ${user.name.split(' ')[0]} 👋` : 'Tax made simple'}
-</h1>
-<p className="text-xl text-slate-600 mb-8" style={{ fontWeight: 300, letterSpacing: '0.02em' }}>Smart tax allocation for 1099 workers</p>
-<button onClick={() => setView('calculator')} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-semibold hover:shadow-xl transition-all">
-<Calculator className="w-5 h-5" />
-Calculate your taxes
-<ArrowRight className="w-5 h-5" />
-</button>
-</div>
+    if (!userProfile.expectedAnnualIncome || !userProfile.businessType) {
+      setTimeout(() => setShowMoreInfoModal(true), 500);
+    }
+  };
 
-{result && (
-<div className="max-w-6xl mx-auto space-y-6">
-<div className="grid md:grid-cols-3 gap-6">
-<div className="bg-white rounded-3xl p-8 border shadow-sm">
-<div className="flex items-center gap-3 mb-4">
-<div className="p-3 bg-red-50 rounded-2xl">
-<DollarSign className="w-6 h-6 text-red-600" />
-</div>
-<p className="text-sm font-medium text-slate-600">Tax per paycheck</p>
-</div>
-<p className="text-4xl font-bold mb-2">${result.total.toFixed(2)}</p>
-<p className="text-sm text-slate-500">{result.rate.toFixed(1)}% rate</p>
-{result.expensesDeducted > 0 && (
-<p className="text-xs text-green-600 mt-2">Saved ${result.taxSavingsFromExpenses.toFixed(2)} from expenses</p>
-)}
-</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <span className="text-2xl font-bold text-white">A</span>
+          </div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-<div className="bg-white rounded-3xl p-8 border shadow-sm">
-<div className="flex items-center gap-3 mb-4">
-<div className="p-3 bg-green-50 rounded-2xl">
-<PiggyBank className="w-6 h-6 text-green-600" />
-</div>
-<p className="text-sm font-medium text-slate-600">Take-home</p>
-</div>
-<p className="text-4xl font-bold text-green-600 mb-2">${result.take.toFixed(2)}</p>
-<p className="text-sm text-slate-500">After taxes</p>
-</div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 font-space">
+      <nav className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-4 cursor-pointer" onClick={() => setView('dashboard')}>
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-xl font-bold text-white">A</span>
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">allocai</span>
+            </div>
 
-<div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl p-8 text-white shadow-lg">
-<div className="flex items-center gap-3 mb-4">
-<div className="p-3 bg-white/20 rounded-2xl">
-<TrendingUp className="w-6 h-6" />
-</div>
-<p className="text-sm font-medium">Annual</p>
-</div>
-<p className="text-4xl font-bold mb-2">${result.annualTax.toLocaleString()}</p>
-<p className="text-sm opacity-80">Total tax/year</p>
-</div>
-</div>
+            {user ? (
+              <>
+                <div className="hidden md:block relative">
+                  <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-3 px-4 py-2.5 rounded-full hover:bg-slate-50 transition-all">
+                    <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm font-medium">{user.user_metadata?.full_name?.split(' ')[0] || user.email.split('@')[0]}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
 
-<div className="bg-white rounded-3xl p-8 border shadow-sm">
-<h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-<Calendar className="w-6 h-6 text-indigo-600" />
-Quarterly Payment Breakdown
-</h3>
-<div className="grid md:grid-cols-4 gap-4 mb-6">
-{['Q1', 'Q2', 'Q3', 'Q4'].map((quarter, idx) => (
-<div key={quarter} className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-100">
-<p className="text-sm font-medium text-slate-600 mb-2">{quarter} Payment</p>
-<p className="text-3xl font-bold text-indigo-600">${result.quarterlyPayment.toFixed(2)}</p>
-<p className="text-xs text-slate-500 mt-2">
-Due: {getQuarterlyDates()[idx].date.split('-').slice(1).join('/')}
-</p>
-</div>
-))}
-</div>
-<div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-<span className="font-medium">Set aside per paycheck for quarterly taxes:</span>
-<span className="text-2xl font-bold text-indigo-600">${(result.quarterlyPayment / 3).toFixed(2)}</span>
-</div>
-<button
-onClick={() => setView('calendar')}
-className="mt-4 w-full py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
->
-Set Up Tax Reminders
-</button>
-</div>
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border py-2 z-50">
+                      <div className="px-5 py-4 border-b">
+                        <p className="text-sm font-semibold">{user.user_metadata?.full_name || 'User'}</p>
+                        <p className="text-xs text-slate-500">{user.email}</p>
+                      </div>
+                      <button onClick={() => { setView('dashboard'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+                        <Home className="w-4 h-4" />Dashboard
+                      </button>
+                      <button onClick={() => { setView('calculator'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+                        <Calculator className="w-4 h-4" />Calculator
+                      </button>
+                      <button onClick={() => { setView('calendar'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+                        <Calendar className="w-4 h-4" />Tax Calendar
+                      </button>
+                      <button onClick={() => { setView('expenses'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+                        <Receipt className="w-4 h-4" />Expenses
+                      </button>
+                      <button onClick={() => { setView('settings'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+                        <Settings className="w-4 h-4" />Settings
+                      </button>
+                      <div className="border-t pt-2">
+                        <button onClick={handleLogout} className="w-full text-left px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
+                          <LogOut className="w-4 h-4" />Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-<div className="bg-white rounded-3xl p-8 border shadow-sm">
-<h3 className="text-xl font-bold mb-4">Tax Breakdown</h3>
-<div className="space-y-3">
-<div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-<span className="font-medium">Gross Income</span>
-<span className="font-bold">${result.income.toFixed(2)}</span>
-</div>
-{result.expensesDeducted > 0 && (
-<div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl">
-<span className="font-medium text-green-700">Business Expenses</span>
-<span className="font-bold text-green-700">-${result.expensesDeducted.toFixed(2)}</span>
-</div>
-)}
-<div className="flex justify-between items-center p-4 bg-indigo-50 rounded-2xl">
-<span className="font-medium text-indigo-700">Taxable Income</span>
-<span className="font-bold text-indigo-700">${result.taxableIncome.toFixed(2)}</span>
-</div>
-<div className="flex justify-between items-center p-4 bg-red-50 rounded-2xl">
-<span className="font-medium text-red-700">Total Tax</span>
-<span className="font-bold text-red-700">${result.total.toFixed(2)}</span>
-</div>
-</div>
-</div>
-</div>
-)}
+                <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden p-2 hover:bg-slate-50 rounded-lg">
+                  <Menu className="w-6 h-6" />
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setShowAuth(true)} className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-medium hover:shadow-lg transition-all">
+                Sign in
+              </button>
+            )}
+          </div>
+        </div>
 
-{!result && (
-<div className="max-w-2xl mx-auto bg-white rounded-3xl p-12 border text-center">
-<div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-<Calculator className="w-10 h-10 text-indigo-600" />
-</div>
-<h3 className="text-2xl font-bold mb-3">Start your first calculation</h3>
-<p className="text-slate-600 mb-8">Get instant tax insights in seconds</p>
-<button onClick={() => setView('calculator')} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-semibold">
-Calculate
-<ArrowRight className="w-5 h-5" />
-</button>
-</div>
-)}
-</div>
-)}
+        {showMobileMenu && user && (
+          <div className="md:hidden bg-white border-t">
+            <div className="px-6 py-4 border-b">
+              <p className="text-sm font-semibold">{user.user_metadata?.full_name || 'User'}</p>
+              <p className="text-xs text-slate-500">{user.email}</p>
+            </div>
+            <button onClick={() => { setView('dashboard'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+              <Home className="w-4 h-4" />Dashboard
+            </button>
+            <button onClick={() => { setView('calculator'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+              <Calculator className="w-4 h-4" />Calculator
+            </button>
+            <button onClick={() => { setView('calendar'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+              <Calendar className="w-4 h-4" />Tax Calendar
+            </button>
+            <button onClick={() => { setView('expenses'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+              <Receipt className="w-4 h-4" />Expenses
+            </button>
+            <button onClick={() => { setView('settings'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+              <Settings className="w-4 h-4" />Settings
+            </button>
+            <div className="border-t">
+              <button onClick={handleLogout} className="w-full text-left px-6 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
+                <LogOut className="w-4 h-4" />Sign out
+              </button>
+            </div>
+          </div>
+        )}
+      </nav>
 
-{view === 'calculator' && (
-<div className="max-w-2xl mx-auto">
-<h1 className="text-4xl font-bold mb-8">Tax Calculator</h1>
-<div className="bg-white rounded-3xl p-8 border shadow-sm space-y-6">
-<div>
-<label className="block font-semibold mb-3">State</label>
-<select value={state} onChange={(e) => setState(e.target.value)} className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none">
-<option value="">Select state</option>
-{Object.entries(states).map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
-</select>
-</div>
-<div>
-<label className="block font-semibold mb-3">Paycheck Amount</label>
-<input type="number" value={income} onChange={(e) => setIncome(e.target.value)} placeholder="5000" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none text-lg" />
+      {showAuth && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
+            <button onClick={() => { setShowAuth(false); setAuthError(''); setAuthSuccess(''); }} className="absolute top-4 right-4"><X /></button>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-white">A</span>
+              </div>
+              <h2 className="text-2xl font-bold">{isLogin ? 'Welcome back' : 'Get started'}</h2>
+            </div>
+
+            {authError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {authError}
+              </div>
+            )}
+
+            {authSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+                {authSuccess}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {!isLogin && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />}
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />
+              {isLogin && (
+                <div className="text-right">
+                  <button onClick={() => { setShowAuth(false); setShowForgotPassword(true); }} className="text-sm text-indigo-600 hover:text-indigo-700">
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+              <button onClick={handleAuth} className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition-all">
+                {isLogin ? 'Sign in' : 'Create account'}
+              </button>
+            </div>
+            <button onClick={() => { setIsLogin(!isLogin); setAuthError(''); setAuthSuccess(''); }} className="mt-4 text-sm text-slate-600 w-full">
+              {isLogin ? 'Need an account? Sign up' : 'Have an account? Sign in'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
+            <button onClick={() => { setShowForgotPassword(false); setResetSent(false); setResetEmail(''); setAuthError(''); }} className="absolute top-4 right-4">
+              <X />
+            </button>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-indigo-600" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Reset Password</h2>
+              <p className="text-sm text-slate-600">Enter your email and we'll send you a reset link</p>
+            </div>
+
+            {authError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {authError}
+              </div>
+            )}
+
+            {!resetSent ? (
+              <div className="space-y-4">
+                <input 
+                  type="email" 
+                  value={resetEmail} 
+                  onChange={(e) => setResetEmail(e.target.value)} 
+                  placeholder="Email" 
+                  className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" 
+                />
+                <button 
+                  onClick={handleForgotPassword} 
+                  disabled={!resetEmail}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3 rounded-full font-semibold disabled:opacity-50"
+                >
+                  Send Reset Link
+                </button>
+                <button 
+                  onClick={() => { setShowForgotPassword(false); setShowAuth(true); }} 
+                  className="w-full text-sm text-slate-600"
+                >
+                  Back to sign in
+                </button>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <p className="text-slate-600 mb-4">Reset link sent to {resetEmail}</p>
+                <p className="text-xs text-slate-500">Check your inbox and follow the instructions</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        {view === 'dashboard' && (
+          <div className="space-y-12">
+            <div className="text-center max-w-3xl mx-auto">
+              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 font-syne" style={{ fontWeight: 800 }}>
+                {user ? `Hey ${user.user_metadata?.full_name?.split(' ')[0] || user.email.split('@')[0]} 👋` : 'Tax made simple'}
+              </h1>
+              <p className="text-xl text-slate-600 mb-8" style={{ fontWeight: 300, letterSpacing: '0.02em' }}>Smart tax allocation for 1099 workers</p>
+              <button onClick={() => setView('calculator')} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-semibold hover:shadow-xl transition-all">
+                <Calculator className="w-5 h-5" />
+                Calculate your taxes
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            {result && (
+              <div className="max-w-6xl mx-auto space-y-6">
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-3xl p-8 border shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-3 bg-red-50 rounded-2xl">
+                        <DollarSign className="w-6 h-6 text-red-600" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-600">Tax per paycheck</p>
+                    </div>
+                    <p className="text-4xl font-bold mb-2">${result.total.toFixed(2)}</p>
+                    <p className="text-sm text-slate-500">{result.rate.toFixed(1)}% rate</p>
+                    {result.expensesDeducted > 0 && (
+                      <p className="text-xs text-green-600 mt-2">Saved ${result.taxSavingsFromExpenses.toFixed(2)} from expenses</p>
+                    )}
+                  </div>
+
+                  <div className="bg-white rounded-3xl p-8 border shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-3 bg-green-50 rounded-2xl">
+                        <PiggyBank className="w-6 h-6 text-green-600" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-600">Take-home</p>
+                    </div>
+                    <p className="text-4xl font-bold text-green-600 mb-2">${result.take.toFixed(2)}</p>
+                    <p className="text-sm text-slate-500">After taxes</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl p-8 text-white shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-3 bg-white/20 rounded-2xl">
+                        <TrendingUp className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-medium">Annual</p>
+                    </div>
+                    <p className="text-4xl font-bold mb-2">${result.annualTax.toLocaleString()}</p>
+                    <p className="text-sm opacity-80">Total tax/year</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl p-8 border shadow-sm">
+                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <Calendar className="w-6 h-6 text-indigo-600" />
+                    Quarterly Payment Breakdown
+                  </h3>
+                  <div className="grid md:grid-cols-4 gap-4 mb-6">
+                    {['Q1', 'Q2', 'Q3', 'Q4'].map((quarter, idx) => (
+                      <div key={quarter} className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-indigo-100">
+                        <p className="text-sm font-medium text-slate-600 mb-2">{quarter} Payment</p>
+                        <p className="text-3xl font-bold text-indigo-600">${result.quarterlyPayment.toFixed(2)}</p>
+                        <p className="text-xs text-slate-500 mt-2">
+                          Due: {getQuarterlyDates()[idx].date.split('-').slice(1).join('/')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <span className="font-medium">Set aside per paycheck for quarterly taxes:</span>
+                    <span className="text-2xl font-bold text-indigo-600">${(result.quarterlyPayment / 3).toFixed(2)}</span>
+                  </div>
+                  <button
+                    onClick={() => setView('calendar')}
+                    className="mt-4 w-full py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
+                  >
+                    Set Up Tax Reminders
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-3xl p-8 border shadow-sm">
+                  <h3 className="text-xl font-bold mb-4">Tax Breakdown</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                      <span className="font-medium">Gross Income</span>
+                      <span className="font-bold">${result.income.toFixed(2)}</span>
+                    </div>
+                    {result.expensesDeducted > 0 && (
+                      <div className="flex justify-between items-center p-4 bg-green-50 rounded-2xl">
+                        <span className="font-medium text-green-700">Business Expenses</span>
+                        <span className="font-bold text-green-700">-${result.expensesDeducted.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center p-4 bg-indigo-50 rounded-2xl">
+                      <span className="font-medium text-indigo-700">Taxable Income</span>
+                      <span className="font-bold text-indigo-700">${result.taxableIncome.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-4 bg-red-50 rounded-2xl">
+                      <span className="font-medium text-red-700">Total Tax</span>
+                      <span className="font-bold text-red-700">${result.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!result && (
+              <div className="max-w-2xl mx-auto bg-white rounded-3xl p-12 border text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <Calculator className="w-10 h-10 text-indigo-600" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">Start your first calculation</h3>
+                <p className="text-slate-600 mb-8">Get instant tax insights in seconds</p>
+                <button onClick={() => setView('calculator')} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-semibold">
+                  Calculate
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {view === 'calculator' && (
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-4xl font-bold mb-8">Tax Calculator</h1>
+            <div className="bg-white rounded-3xl p-8 border shadow-sm space-y-6">
+              <div>
+                <label className="block font-semibold mb-3">State</label>
+                <select value={state} onChange={(e) => setState(e.target.value)} className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none">
+                  <option value="">Select state</option>
+                  {Object.entries(states).map(([code, data]) => <option key={code} value={code}>{data.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block font-semibold mb-3">Paycheck Amount</label>
+                <input type="number" value={income} onChange={(e) => setIncome(e.target.value)} placeholder="5000" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none text-lg" />
               </div>
               <button onClick={calc} disabled={!state || !income} className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-4 rounded-full font-semibold disabled:opacity-50">
                 Calculate
@@ -1092,7 +1168,7 @@ Calculate
             <div className="bg-white rounded-3xl p-8 border shadow-sm space-y-6">
               <div>
                 <label className="block font-semibold mb-2">Name</label>
-                <input type="text" value={user.name} className="w-full px-4 py-3 border-2 rounded-2xl bg-slate-50" disabled />
+                <input type="text" value={user.user_metadata?.full_name || ''} className="w-full px-4 py-3 border-2 rounded-2xl bg-slate-50" disabled />
               </div>
               <div>
                 <label className="block font-semibold mb-2">Email</label>
@@ -1101,7 +1177,7 @@ Calculate
               <div>
                 <label className="block font-semibold mb-2">Plan</label>
                 <div className="p-4 bg-slate-50 rounded-2xl">
-                  <span className="font-medium capitalize">{user.plan} Plan</span>
+                  <span className="font-medium capitalize">Free Plan</span>
                 </div>
               </div>
             </div>
