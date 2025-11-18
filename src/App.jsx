@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Calendar, Home, Calculator, X, ArrowRight, CheckCircle, LogOut, User, Settings, ChevronDown, Lock, Plus, Trash2, Receipt, PiggyBank, Menu, FileText } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import Landing from './Landing';
 
 const Allocai = () => {
   const [user, setUser] = useState(null);
@@ -410,7 +411,20 @@ const Allocai = () => {
     }
   };
 
-  if (loading) {
+if (loading) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <span className="text-2xl font-bold text-white">A</span>
+        </div>
+        <p className="text-slate-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
@@ -423,6 +437,10 @@ const Allocai = () => {
     );
   }
 
+  if (!user && !loading) {
+  return <Landing onGetStarted={() => setShowAuth(true)} />;
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 font-space">
       <nav className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-slate-100">
