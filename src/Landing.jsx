@@ -10,16 +10,24 @@ const Landing = ({ onGetStarted }) => {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-xl font-bold text-white">A</span>
+                <span className="text-xl font-bold text-white">S</span>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">allocai</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
             </div>
-            <button 
-              onClick={onGetStarted}
-              className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-medium hover:shadow-lg transition-all"
-            >
-              Get Started Free
-            </button>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={onGetStarted}
+                className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-medium hover:shadow-lg transition-all"
+              >
+                Get Started Free
+              </button>
+              <button 
+                onClick={onGetStarted}
+                className="px-6 py-2.5 border-2 border-slate-200 text-slate-700 rounded-full font-medium hover:border-indigo-300 transition-all"
+              >
+                Sign In
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -29,15 +37,15 @@ const Landing = ({ onGetStarted }) => {
         <div className="text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-full text-indigo-700 text-sm font-medium mb-8">
             <Sparkles className="w-4 h-4" />
-            Free for 1099 workers
+            Set aside taxes the smart way
           </div>
           
           <h1 className="text-6xl md:text-7xl font-bold text-slate-900 mb-6 font-syne leading-tight" style={{ fontWeight: 800 }}>
-            Stop guessing.<br/>Start <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">saving</span>.
+            Taxes set aside.<br/>Stress <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">eliminated</span>.
           </h1>
           
           <p className="text-xl md:text-2xl text-slate-600 mb-12 leading-relaxed" style={{ fontWeight: 300, letterSpacing: '0.01em' }}>
-            The smartest tax calculator for freelancers, contractors, and self-employed workers. Know exactly how much to set aside—before tax season hits.
+            AI-powered tax allocation for freelancers and 1099 workers. Know exactly how much to set aside from every paycheck—before tax season hits.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -81,12 +89,12 @@ const Landing = ({ onGetStarted }) => {
                 <div className="w-3 h-3 rounded-full bg-white/30"></div>
                 <div className="w-3 h-3 rounded-full bg-white/30"></div>
               </div>
-              <div className="flex-1 text-center text-white text-sm font-medium">allocai.vercel.app</div>
+              <div className="flex-1 text-center text-white text-sm font-medium">setasai.com</div>
             </div>
             <div className="p-8 bg-gradient-to-br from-slate-50 to-indigo-50">
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                  <div className="text-sm text-slate-600 mb-2">Tax per paycheck</div>
+                  <div className="text-sm text-slate-600 mb-2">Set aside per check</div>
                   <div className="text-3xl font-bold text-slate-900">$1,247.50</div>
                   <div className="text-sm text-slate-500 mt-2">24.8% rate</div>
                 </div>
@@ -251,7 +259,7 @@ const Landing = ({ onGetStarted }) => {
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-4">Get Your Answer</h3>
             <p className="text-slate-600">
-              See exactly how much to save per paycheck, plus your quarterly and annual totals.
+              See exactly how much to set aside per paycheck, plus your quarterly and annual totals.
             </p>
           </div>
         </div>
@@ -266,7 +274,7 @@ const Landing = ({ onGetStarted }) => {
                 Built for real 1099 workers
               </h2>
               <p className="text-xl text-slate-600 mb-8">
-                We get it. Because we've been there. Allocai is designed by freelancers, for freelancers.
+                We get it. Because we've been there. SetasAI is designed by freelancers, for freelancers.
               </p>
               
               <div className="space-y-6">
@@ -342,7 +350,7 @@ const Landing = ({ onGetStarted }) => {
       <section className="max-w-7xl mx-auto px-6 py-32">
         <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl p-12 md:p-20 text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 font-syne">
-            Ready to take control of your taxes?
+            Ready to set aside smarter?
           </h2>
           <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
             Join thousands of freelancers who sleep better knowing exactly where they stand with the IRS.
@@ -366,9 +374,9 @@ const Landing = ({ onGetStarted }) => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center">
-                <span className="text-lg font-bold text-white">A</span>
+                <span className="text-lg font-bold text-white">S</span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">allocai</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
             </div>
             
             <div className="flex flex-wrap justify-center gap-8 text-sm text-slate-600">
@@ -383,7 +391,7 @@ const Landing = ({ onGetStarted }) => {
               </a>
             </div>
             
-            <p className="text-sm text-slate-500">© 2024 Allocai. Washington, DC</p>
+            <p className="text-sm text-slate-500">© 2025 SetasAI. Washington, DC</p>
           </div>
         </div>
       </footer>

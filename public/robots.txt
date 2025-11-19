@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://https://allocai-six.vercel.app//sitemap.xml

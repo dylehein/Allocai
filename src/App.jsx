@@ -3,7 +3,7 @@ import { DollarSign, TrendingUp, Calendar, Home, Calculator, X, ArrowRight, Chec
 import { supabase } from './lib/supabase';
 import Landing from './Landing';
 
-const Allocai = () => {
+const SetasAI = () => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,7 +119,7 @@ const Allocai = () => {
     const loadReminders = async () => {
       if (user) {
         try {
-          const data = localStorage.getItem(`allocai-reminders-${user.id}`);
+          const data = localStorage.getItem(`setasai-reminders-${user.id}`);
           if (data) {
             setReminders(JSON.parse(data));
           }
@@ -135,7 +135,7 @@ const Allocai = () => {
     const loadExpenses = async () => {
       if (user) {
         try {
-          const data = localStorage.getItem(`allocai-expenses-${user.id}`);
+          const data = localStorage.getItem(`setasai-expenses-${user.id}`);
           if (data) {
             setExpenses(JSON.parse(data));
           }
@@ -151,7 +151,7 @@ const Allocai = () => {
     const loadProfile = async () => {
       if (user) {
         try {
-          const data = localStorage.getItem(`allocai-profile-${user.id}`);
+          const data = localStorage.getItem(`setasai-profile-${user.id}`);
           if (data) {
             setUserProfile(JSON.parse(data));
           }
@@ -233,7 +233,7 @@ const Allocai = () => {
   const saveProfile = async (profile) => {
     if (user) {
       try {
-        localStorage.setItem(`allocai-profile-${user.id}`, JSON.stringify(profile));
+        localStorage.setItem(`setasai-profile-${user.id}`, JSON.stringify(profile));
         setUserProfile(profile);
       } catch (e) {}
     }
@@ -242,7 +242,7 @@ const Allocai = () => {
   const saveReminders = async (newReminders) => {
     if (user) {
       try {
-        localStorage.setItem(`allocai-reminders-${user.id}`, JSON.stringify(newReminders));
+        localStorage.setItem(`setasai-reminders-${user.id}`, JSON.stringify(newReminders));
         setReminders(newReminders);
       } catch (e) {}
     }
@@ -306,7 +306,7 @@ const Allocai = () => {
   const saveExpenses = async (newExpenses) => {
     if (user) {
       try {
-        localStorage.setItem(`allocai-expenses-${user.id}`, JSON.stringify(newExpenses));
+        localStorage.setItem(`setasai-expenses-${user.id}`, JSON.stringify(newExpenses));
         setExpenses(newExpenses);
       } catch (e) {}
     }
@@ -411,25 +411,12 @@ const Allocai = () => {
     }
   };
 
-if (loading) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-          <span className="text-2xl font-bold text-white">A</span>
-        </div>
-        <p className="text-slate-600">Loading...</p>
-      </div>
-    </div>
-  );
-}
-
-if (loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <span className="text-2xl font-bold text-white">A</span>
+            <span className="text-2xl font-bold text-white">S</span>
           </div>
           <p className="text-slate-600">Loading...</p>
         </div>
@@ -438,19 +425,21 @@ if (loading) {
   }
 
   if (!user && !loading) {
-  return <Landing onGetStarted={() => setShowAuth(true)} />;
+    return <Landing onGetStarted={() => setShowAuth(true)} />;
   }
-  
+
+  // [Continued in next part due to length...]
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 font-space">
+      {/* Navigation */}
       <nav className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4 cursor-pointer" onClick={() => setView('dashboard')}>
               <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-xl font-bold text-white">A</span>
+                <span className="text-xl font-bold text-white">S</span>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">allocai</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
             </div>
 
             {user ? (
@@ -542,7 +531,7 @@ if (loading) {
             <button onClick={() => { setShowAuth(false); setAuthError(''); setAuthSuccess(''); }} className="absolute top-4 right-4"><X /></button>
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">A</span>
+                <span className="text-2xl font-bold text-white">S</span>
               </div>
               <h2 className="text-2xl font-bold">{isLogin ? 'Welcome back' : 'Get started'}</h2>
             </div>
@@ -1204,7 +1193,7 @@ if (loading) {
                <footer className="mt-20 border-t border-slate-200 py-8">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
-              <p>© 2025 Allocai. All rights reserved.</p>
+              <p>© 2025 SetasAI. All rights reserved.</p>
               <div className="flex gap-6">
                 <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors">
                   Privacy Policy
@@ -1224,4 +1213,4 @@ if (loading) {
   );
 };
 
-export default Allocai;
+export default SetasAI;
