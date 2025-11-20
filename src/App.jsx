@@ -424,9 +424,58 @@ const SetasAI = () => {
     );
   }
 
-  if (!user && !loading) {
-    return <Landing onGetStarted={() => setShowAuth(true)} />;
-  }
+if (!user && !loading) {
+  return (
+    <>
+      <Landing onGetStarted={() => setShowAuth(true)} />
+      
+      {showAuth && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
+            <button onClick={() => { setShowAuth(false); setAuthError(''); setAuthSuccess(''); }} className="absolute top-4 right-4"><X /></button>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-white">S</span>
+              </div>
+              <h2 className="text-2xl font-bold">{isLogin ? 'Welcome back' : 'Get started'}</h2>
+            </div>
+
+            {authError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {authError}
+              </div>
+            )}
+
+            {authSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+                {authSuccess}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {!isLogin && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />}
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none" />
+              {isLogin && (
+                <div className="text-right">
+                  <button onClick={() => { setShowAuth(false); setShowForgotPassword(true); }} className="text-sm text-indigo-600 hover:text-indigo-700">
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+              <button onClick={handleAuth} className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition-all">
+                {isLogin ? 'Sign in' : 'Create account'}
+              </button>
+            </div>
+            <button onClick={() => { setIsLogin(!isLogin); setAuthError(''); setAuthSuccess(''); }} className="mt-4 text-sm text-slate-600 w-full">
+              {isLogin ? 'Need an account? Sign up' : 'Have an account? Sign in'}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
   // [Continued in next part due to length...]
   return (
@@ -525,8 +574,10 @@ const SetasAI = () => {
         )}
       </nav>
 
-      {showAuth && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+console.log('showAuth state:', showAuth);
+
+{showAuth && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
             <button onClick={() => { setShowAuth(false); setAuthError(''); setAuthSuccess(''); }} className="absolute top-4 right-4"><X /></button>
             <div className="text-center mb-6">
