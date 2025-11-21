@@ -491,12 +491,16 @@ if (!user && !loading && !isAnonymous) {
       <nav className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-4 cursor-pointer" onClick={() => setView('dashboard')}>
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-xl font-bold text-white">S</span>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
-            </div>
+           <div className="flex items-center gap-4 cursor-pointer" onClick={() => {
+  setIsAnonymous(false);
+  setUser(null);
+  setView('dashboard');
+}}>
+  <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
+    <span className="text-xl font-bold text-white">S</span>
+  </div>
+  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
+</div>
 
             {user ? (
               <>
