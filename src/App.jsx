@@ -23,6 +23,7 @@ const SetasAI = () => {
   const [name, setName] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const [state, setState] = useState('');
   const [income, setIncome] = useState('');
@@ -424,10 +425,16 @@ const SetasAI = () => {
     );
   }
 
-if (!user && !loading) {
+if (!user && !loading && !isAnonymous) {
   return (
     <>
-      <Landing onGetStarted={() => setShowAuth(true)} />
+      <Landing 
+        onGetStarted={() => setShowAuth(true)} 
+      onSkipToCalculator={() => {
+    setIsAnonymous(true);
+    setView('dashboard');
+  }}
+/>
       
       {showAuth && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -574,7 +581,6 @@ if (!user && !loading) {
         )}
       </nav>
 
-console.log('showAuth state:', showAuth);
 
 {showAuth && (
   <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
