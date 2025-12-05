@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://setasai-git-main-dyleheins-projects.vercel.app/sitemap.xml
+Sitemap: https://setasai.vercel.app/sitemap.xml
