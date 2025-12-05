@@ -499,7 +499,7 @@ if (!user && !loading && !isAnonymous) {
   <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
     <span className="text-xl font-bold text-white">S</span>
   </div>
-  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
+  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-caprasimo">SetasAI</span>
 </div>
 
             {user ? (
@@ -691,7 +691,7 @@ if (!user && !loading && !isAnonymous) {
         {view === 'dashboard' && (
           <div className="space-y-12">
             <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 font-syne" style={{ fontWeight: 800 }}>
+              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 font-caprasimo" style={{ fontWeight: 800 }}>
                 {user ? `Hey ${user.user_metadata?.full_name?.split(' ')[0] || user.email.split('@')[0]} 👋` : 'Tax made simple'}
               </h1>
               <p className="text-xl text-slate-600 mb-8" style={{ fontWeight: 300, letterSpacing: '0.02em' }}>Smart tax allocation for 1099 workers</p>
