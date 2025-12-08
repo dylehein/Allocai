@@ -12,7 +12,7 @@ const Landing = ({ onGetStarted, onSkipToCalculator }) => {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <span className="text-lg sm:text-xl font-bold text-white">S</span>
               </div>
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">SetasAI</span>
+              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-caprasimo">SetasAI</span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <button 
@@ -40,7 +40,7 @@ const Landing = ({ onGetStarted, onSkipToCalculator }) => {
             Set aside taxes the smart way
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-4 sm:mb-6 leading-tight px-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-4 sm:mb-6 leading-tight px-4 font-caprasimo">
             Taxes set aside.<br/>Stress <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">eliminated</span>.
           </h1>
           
