@@ -30,6 +30,9 @@ const SetasAI = () => {
   const [result, setResult] = useState(null);
   const [reminders, setReminders] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [savedCalculations, setSavedCalculations] = useState([]);
+const [showSaveModal, setShowSaveModal] = useState(false);
+const [saveName, setSaveName] = useState('');
   const [expenseForm, setExpenseForm] = useState({
     description: '',
     amount: '',
@@ -147,6 +150,91 @@ const SetasAI = () => {
     };
     loadExpenses();
   }, [user]);
+
+  // Load saved calculations
+useEffect(() => {
+  const loadSavedCalculations = async () => {
+    if (user && !user.anonymous) {
+      try {
+        const { data, error } = await supabase
+          .from('saved_calculations')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setSavedCalculations(data || []);
+      } catch (error) {
+        console.error('Error loading saved calculations:', error);
+        setSavedCalculations([]);
+      }
+    }
+  };
+  loadSavedCalculations();
+}, [user]);
+
+const saveCalculation = async () => {
+  if (!user || user.anonymous || !saveName.trim()) return;
+
+  // Check if user has reached limit (5 for free)
+  if (savedCalculations.length >= 5) {
+    alert('You\'ve reached the limit of 5 saved calculations. Upgrade to Pro for unlimited saves!');
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('saved_calculations')
+      .insert([
+        {
+          user_id: user.id,
+          name: saveName.trim(),
+          state: state,
+          income: result.income,
+          total_tax: result.total,
+          take_home: result.take,
+          tax_rate: result.rate,
+          annual_tax: result.annualTax,
+          quarterly_payment: result.quarterlyPayment,
+          expenses_deducted: result.expensesDeducted || 0,
+          taxable_income: result.taxableIncome,
+          payments_per_year: userProfile.paymentsPerYear || 12,
+          expected_annual_income: userProfile.expectedAnnualIncome || null,  // Changed
+          business_type: userProfile.businessType || null,                    // Changed
+          has_health_insurance: userProfile.hasHealthInsurance || false
+        }
+      ])
+      .select();
+
+    if (error) throw error;
+
+    setSavedCalculations([data[0], ...savedCalculations]);
+    setShowSaveModal(false);
+    setSaveName('');
+    alert('Calculation saved successfully!');
+  } catch (error) {
+    console.error('Error saving calculation:', error);
+    alert('Failed to save calculation. Please try again.');
+  }
+};
+
+const deleteCalculation = async (id) => {
+  if (!confirm('Delete this calculation?')) return;
+
+  try {
+    const { error } = await supabase
+      .from('saved_calculations')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    setSavedCalculations(savedCalculations.filter(calc => calc.id !== id));
+  } catch (error) {
+    console.error('Error deleting calculation:', error);
+    alert('Failed to delete calculation.');
+  }
+};
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -531,6 +619,13 @@ if (!user && !loading && !isAnonymous) {
                       <button onClick={() => { setView('expenses'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
                         <Receipt className="w-4 h-4" />Expenses
                       </button>
+                      <button onClick={() => { setView('expenses'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+  <Receipt className="w-4 h-4" />Expenses
+</button>
+<button onClick={() => { setView('saved'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
+  <FileText className="w-4 h-4" />Saved Calculations
+</button>
+<button onClick={() => { setView('settings'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3"></button>
                       <button onClick={() => { setView('settings'); setShowUserMenu(false); }} className="w-full text-left px-5 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-3">
                         <Settings className="w-4 h-4" />Settings
                       </button>
@@ -573,6 +668,15 @@ if (!user && !loading && !isAnonymous) {
             <button onClick={() => { setView('expenses'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
               <Receipt className="w-4 h-4" />Expenses
             </button>
+            <button onClick={() => { setView('expenses'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+  <Receipt className="w-4 h-4" />Expenses
+</button>
+<button onClick={() => { setView('saved'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+  <FileText className="w-4 h-4" />Saved Calculations
+</button>
+<button onClick={() => { setView('settings'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
+  <Settings className="w-4 h-4" />Settings
+</button>
             <button onClick={() => { setView('settings'); setShowMobileMenu(false); }} className="w-full text-left px-6 py-3 text-sm hover:bg-slate-50 flex items-center gap-3">
               <Settings className="w-4 h-4" />Settings
             </button>
@@ -793,6 +897,20 @@ if (!user && !loading && !isAnonymous) {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Save Calculation Button */}
+                <div className="text-center">
+                  <button
+                    onClick={() => setShowSaveModal(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-full font-semibold hover:bg-indigo-700 transition-all"
+                  >
+                    <FileText className="w-5 h-5" />
+                    Save This Calculation
+                  </button>
+                  <p className="text-sm text-slate-500 mt-2">
+                    {savedCalculations.length}/5 calculations saved
+                  </p>
                 </div>
 
                 <div className="bg-white rounded-3xl p-8 border shadow-sm">
@@ -1283,6 +1401,75 @@ if (!user && !loading && !isAnonymous) {
           </div>
         )}
 
+        {view === 'saved' && user && (
+          <div className="max-w-6xl mx-auto">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-4xl font-bold">Saved Calculations</h1>
+                <p className="text-slate-600 mt-2">{savedCalculations.length}/5 calculations saved (Free tier)</p>
+              </div>
+            </div>
+
+            {savedCalculations.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 border text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <FileText className="w-10 h-10 text-indigo-600" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">No saved calculations yet</h3>
+                <p className="text-slate-600 mb-8">Run a tax calculation and save it for future reference</p>
+                <button onClick={() => setView('calculator')} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full font-semibold">
+                  Calculate Taxes
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {savedCalculations.map((calc) => (
+                  <div key={calc.id} className="bg-white rounded-3xl p-6 border shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-xl font-bold">{calc.name}</h3>
+                          <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
+                            {calc.state}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500 mb-4">
+                          Saved on {new Date(calc.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div>
+                            <p className="text-xs text-slate-500">Income</p>
+                            <p className="text-lg font-bold">${parseFloat(calc.income).toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">Total Tax</p>
+                            <p className="text-lg font-bold text-red-600">${parseFloat(calc.total_tax).toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">Take Home</p>
+                            <p className="text-lg font-bold text-green-600">${parseFloat(calc.take_home).toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">Tax Rate</p>
+                            <p className="text-lg font-bold">{parseFloat(calc.tax_rate).toFixed(1)}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => deleteCalculation(calc.id)}
+                        className="p-2 hover:bg-red-100 rounded-full transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-600" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {view === 'settings' && user && (
           <div className="max-w-2xl mx-auto">
             <h1 className="text-4xl font-bold mb-8">Settings</h1>
@@ -1322,6 +1509,55 @@ if (!user && !loading && !isAnonymous) {
             </div>
           </div>
         </footer>
+
+        {showSaveModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-8 relative">
+              <button onClick={() => { setShowSaveModal(false); setSaveName(''); }} className="absolute top-4 right-4">
+                <X className="w-6 h-6" />
+              </button>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Save Calculation</h2>
+                <p className="text-sm text-slate-600">Give this calculation a name</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Calculation Name</label>
+                  <input
+                    type="text"
+                    value={saveName}
+                    onChange={(e) => setSaveName(e.target.value)}
+                    placeholder="e.g., Summer 2025 Estimate"
+                    className="w-full px-4 py-3 border-2 rounded-2xl focus:border-indigo-500 outline-none"
+                    maxLength={50}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    {savedCalculations.length}/5 calculations saved (Free tier)
+                  </p>
+                </div>
+
+                <button
+                  onClick={saveCalculation}
+                  disabled={!saveName.trim() || savedCalculations.length >= 5}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3 rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savedCalculations.length >= 5 ? 'Limit Reached - Upgrade to Pro' : 'Save Calculation'}
+                </button>
+
+                {savedCalculations.length >= 5 && (
+                  <p className="text-xs text-center text-amber-600">
+                    You've reached the free tier limit. Upgrade to Pro for unlimited saves!
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
