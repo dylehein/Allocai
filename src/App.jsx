@@ -52,6 +52,7 @@ const SetasAI = () => {
     'CO': { name: 'Colorado', rate: 0.0455 },
     'CT': { name: 'Connecticut', rate: 0.065 },
     'DE': { name: 'Delaware', rate: 0.066 },
+    'DC': { name: 'District of Columbia', rate: 0.0975 },
     'FL': { name: 'Florida', rate: 0 },
     'GA': { name: 'Georgia', rate: 0.0575 },
     'HI': { name: 'Hawaii', rate: 0.11 },
@@ -94,7 +95,6 @@ const SetasAI = () => {
     'WV': { name: 'West Virginia', rate: 0.065 },
     'WI': { name: 'Wisconsin', rate: 0.0765 },
     'WY': { name: 'Wyoming', rate: 0 },
-    'DC': { name: 'District of Columbia', rate: 0.0975 }
   };
 
   // Check for existing session on mount
@@ -499,7 +499,7 @@ if (!user && !loading && !isAnonymous) {
   <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
     <span className="text-xl font-bold text-white">S</span>
   </div>
-  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-caprasimo">SetasAI</span>
+  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-poppins">SetasAI</span>
 </div>
 
             {user ? (
@@ -691,7 +691,7 @@ if (!user && !loading && !isAnonymous) {
         {view === 'dashboard' && (
           <div className="space-y-12">
             <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 font-caprasimo" style={{ fontWeight: 800 }}>
+              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 font-poppins" style={{ fontWeight: 800 }}>
                 {user ? `Hey ${user.user_metadata?.full_name?.split(' ')[0] || user.email.split('@')[0]} 👋` : 'Tax made simple'}
               </h1>
               <p className="text-xl text-slate-600 mb-8" style={{ fontWeight: 300, letterSpacing: '0.02em' }}>Smart tax allocation for 1099 workers</p>
@@ -739,6 +739,59 @@ if (!user && !loading && !isAnonymous) {
                     </div>
                     <p className="text-4xl font-bold mb-2">${result.annualTax.toLocaleString()}</p>
                     <p className="text-sm opacity-80">Total tax/year</p>
+                  </div>
+
+                  </div>
+
+                <div className="bg-white rounded-3xl p-8 border shadow-sm">
+                  <h3 className="text-2xl font-bold mb-6 text-center">Your Money Breakdown</h3>
+                  <div className="max-w-2xl mx-auto grid md:grid-cols-2 gap-8 items-center">
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm font-medium text-slate-600">Taxes</span>
+                          <span className="text-sm font-bold text-red-600">{result.rate.toFixed(1)}%</span>
+                        </div>
+                        <div className="h-12 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-500"
+                            style={{ width: `${result.rate.toFixed(1)}%` }}
+                          />
+                        </div>
+                        <p className="text-2xl font-bold text-red-600 mt-2">${result.total.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm font-medium text-slate-600">Take-Home</span>
+                          <span className="text-sm font-bold text-green-600">{((result.take / result.income) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="h-12 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                            style={{ width: `${((result.take / result.income) * 100).toFixed(1)}%` }}
+                          />
+                        </div>
+                        <p className="text-2xl font-bold text-green-600 mt-2">${result.take.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-2xl p-6">
+                      <div className="text-center mb-4">
+                        <p className="text-sm text-slate-600 mb-1">Total Income</p>
+                        <p className="text-4xl font-bold text-slate-900">${result.income.toFixed(2)}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-200">
+                        <div className="text-center">
+                          <div className="w-3 h-3 bg-red-500 rounded-full mx-auto mb-2" />
+                          <p className="text-xs text-slate-500">Taxes</p>
+                          <p className="text-lg font-bold text-red-600">${result.total.toFixed(2)}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2" />
+                          <p className="text-xs text-slate-500">Yours</p>
+                          <p className="text-lg font-bold text-green-600">${result.take.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
